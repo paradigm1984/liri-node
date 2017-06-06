@@ -1,0 +1,27 @@
+{
+  "name": "liri-bot",
+  "version": "1.0.0",
+  "description": "liribot json file",
+  "main": "keys.js",
+  "scripts": {
+    "test": "testing"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paradigm1984/liri-node.git"
+  },
+  "keywords": [
+    "liri"
+  ],
+  "author": "blanco",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/paradigm1984/liri-node/issues"
+  },
+  "homepage": "https://github.com/paradigm1984/liri-node#readme",
+  "dependencies": {
+    "request": "^2.81.0",
+    "spotify": "^0.3.0",
+    "twitter": "^1.7.0"
+  }
+}
