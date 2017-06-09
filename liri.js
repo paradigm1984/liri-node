@@ -1,56 +1,42 @@
-// 6. At the top of the `liri.js` file, write the code you need to grab the data from keys.js. Then store the keys in a variable.
-
-//7. Make it so liri.js can take in one of the following commands:
-
-  // * `my-tweets`
-
-  // * `spotify-this-song`
-
-  // * `movie-this`
-
-  // * `do-what-it-says`
-
+// https://github.com/Multishifties/liri-node-app/blob/master/liri.js
 
 // ================================ VARIABLES ================================ //
+
 
 var fs = require("fs");
 
 // Requiring  keys.js
 var keys = require("./keys");
 
-// Requiring  twitter, spotify and request files from the node_modules folder
-var Twitter = require("twitter");
-var spotify = require("spotify");
-var request = require("request");
 
-// Copying the twitter keys from keys.js into a NEW variable named client.
-// this may be redundant as per line 42 in the twitter function
-var client = new Twitter(keys.twitterKeys);
+// Defining which command
+var command1 = process.argv[2];
 
-// Defining argument arrays
-var command = process.argv[2];
-var value = process.argv[3];
+// This will be the name of a movie or song 
+var command2 = process.argv[3];
 
 // ================================ FUNCTIONS ================================ //
 
-function twitter() {
+// my-tweets
+function twitterSearch() {
 
-	// Putting a reference to the keys into a variable
-	var twitterKeys = require("./keys.js").twitterKeys;
+
+	var Twitter = require("twitter");
 
 	// Assigning the keys to the new variable
 	var client = new Twitter({
 
-		consumer_key: twitterKeys.consumer_key,
-		consumer_secret: twitterKeys.consumer_secret,
-		access_token_key: twitterKeys.access_token_key,
-		access_token_secret: twitterKeys.access_token_secret
+		consumer_key: "h6ngogUMaRioS2GRRozVb829a",
+		consumer_secret: "xyAcTgyKiMVXUZscs3XkZy6ss9ONoQRsoopjpPIHGsthpsFIDY",
+		access_token_key: "4075883716-HsLUeiFawVey1mmRCVAhREIzF2mz8pIeg4AoBEH",
+		access_token_secret:  "CDFuFOMSldelqTVAvA0o6svUdpdgT8bKSRrJE2tjWY4cH",
 	});
 
 	// What to search for...will be the dummy username
 	var params = {
 
-		screen_name: "liribot_00",
+		screen_name: "liribot___",
+		count: 20,
 	};
 
 	// Requesting the tweets using the parameter of the dummy username through
@@ -58,6 +44,10 @@ function twitter() {
 	client.get("status/user_timeline", params, function(error, tweets) {
 
 		if(error){
+			// I keep getting an error when i try to run this. 
+			// "[ { message: 'Sorry, that page does not exist', code: 34 } ]"
+			// tried to look it up but there were multiple causes for that error code.
+			// the consumer and access info is the same as in my keys.js file
 			console.log(error);
 		} else {
 			// Cycle through all of the tweets and numbers them as it logs.
@@ -68,17 +58,37 @@ function twitter() {
 	});
 } // END twitter function
 
-function spotify() {
+// spotify-this-song
+function spotifySong() {
 
-	spotify.search({ type: "track", query: "value" || "rick astley never gonna give you up"}. function(error, data) {
+	var spotify = require("spotify", "spotify-web-api-node");
+	
 
-			if(error) {
-				console.log("ERROR: " + error);
-			} else {
+	var searchTrack;
 
-				// grabs the returned data and specifies what we need from the spotify api
-				// then puts it into a variable.
-				var spotifyCall = data.tracks.items[0];
+	// If the users selection is left blank, search "never gonna give you up"
+	if(command2 === undefined){
+
+		searchTrack = "Never gonna give you up";
+
+		// Otherwise set command2 equal to searchTrack
+	}else {
+		searchTrack = command2;
+	}
+
+	//launch spotify search
+	spotify.search({type:'track', query: searchTrack, limit: 1 }, function(err, data){
+	    if(err){
+	        console.log('Error occurred: ' + err);
+	        return;
+	    }else {
+
+	        // Here i dont get a callback error but i get a typeError that tells me it cant get the item property of undefined
+	        // I set it to searchTrack above so i have no idea why its undefined.
+
+	        // items is supposed to be a function in the spotify-web-api-node that would return an array of tracks, but
+	        // we were asking for the first one in that array. 
+	  		var spotifyCall = data.tracks.items[0];
 
 				var artist = spotifyCall.artist[0].name;
 				console.log("Artist: " + artist);
@@ -91,77 +101,69 @@ function spotify() {
 
 				var preview = spotifyCall.preview_url;
 				console.log("Preview link: " + preview);
-			} // END else statement
-	}); // END spotify.search
+	    }
+	});
 } // END spotify function
 
+// movie-this
 function movieRequest() {
 
-	// Assigning the value of the search to a variable called movvieName
-	var movieName = value;
-	// Setting the defauly choice to pulp fiction if nothing is selected
-	var movieDefault = "Pulp Fiction";
+	var movieApiKey = "http://www.omdbapi.com/?apikey=[40e9cece]&";
 
-	// Searches the chosen movie
-	var url = 'http://www.omdbapi.com/?t=' + movieName + '&y=&plot=short&r=json';
+	var request = require("request");
 
-	// Searches the default choice
-	var urlDefault = 'http://www.omdbapi.com/?t=' + movieDefault + '&y=&plot=short&r=json';
+	if(command2 === null) {
 
-	// If the value assigned to movieName is filled search that
-	if(movvieName != null) {
+		command2 = "Pulp Fiction";
+	}
 
-		request(url, function(error, response, body) {
+	var url = "http://www.omdbapi.com/?apikey=[40e9cece]&" + command2 +'&y=&plot=long&tomatoes=true&r=json';
 
-			// Then if there is no error and the response code matches
-			if (!error && response.statusCode == 200) {
+   	request(url, function(error, response, body){
 
-				// Log the movie info. JSON parse to convert it from a JSON object.
-				console.log("Title: " + value);
-				console.log("Year: " + JSON.parse(body)["Year"]);
-				console.log("Rating: " + JSON.parse(body)["imdbRating"]);
-				console.log("Country of Production: " + JSON.parse(body)["Country"]);
-				console.log("Language: " + JSON.parse(body)["Language"]);
-				console.log("Plot: " + JSON.parse(body)["Plot"]);
-				console.log("Actors: " + JSON.parse(body)["Actors"]);
-            }; // END inner if statement
+	    if(!error && response.statusCode == 200){
 
-		}); // END request
+	        console.log("Title: " + JSON.parse(body)["Title"]);
+	        console.log("Year: " + JSON.parse(body)["Year"]);
+	        console.log("IMDB Rating: " + JSON.parse(body)["imdbRating"]);
+	        console.log("Country: " + JSON.parse(body)["Country"]);
+	        console.log("Language: " + JSON.parse(body)["Language"]);
+	        console.log("Plot: " + JSON.parse(body)["Plot"]);
+	        console.log("Actors: " + JSON.parse(body)["Actors"]);
+	    } else {
+	    	// Getting status code 401 and the error is null
+	    	// From what I read, it could be from the URL but I know I have the right one. 
+	    	// The issue has to be in trying to connect to the API. 
+	    	// I grabbed the url for sending data requests from omdbapi.com and added the api key you gave us
+	    	// and then passed in the parameters after.
+	    	console.log("error type: " + error + ", " + "response code: " + response.statusCode);
+	    }
+    });
 
-	// If there isnt any value, default to Pulp Fiction
-	} else {
-		request(urlDefault, function(error, response, body) {
+}	
 
-			console.log("Title: " + movieDefault);
-			console.log("Year: " + JSON.parse(body)["Year"]);
-			console.log("Rating: " + JSON.parse(body)["imdbRating"]);
-			console.log("Country of Production: " + JSON.parse(body)["Country"]);
-			console.log("Language: " + JSON.parse(body)["Language"]);
-			console.log("Plot: " + JSON.parse(body)["Plot"]);
-			console.log("Actors: " + JSON.parse(body)["Actors"]);
-
-		}) // END else
-
-} // END movieRequest function
-
+// Didnt even get a chance to work on the doSomething(); because of how much time everything took. I definitley want to sit down
+// and go over this assignment becasue theres still alot I dont get.  
 
 // ================================ LOGIC ================================ //
 
+// The logic works fine. this was the easiest part of the assignment lololol.
+
 // switch case for whatever command the user inputs
-switch(action) {
+switch(command1) {
 
 	// in the case of the my-tweets command, run the twitter function
-	case "my-tweets";
-		twitter();
+	case "my-tweets":
+		twitterSearch();
 	break;	
 
-	// in the case of the this-song command, run the spotify function
-	case "spotify-this-song";
-		spotify();
+	// in the case of the this-song command, run the spotify functionmovie
+	case "spotify-this-song":
+		spotifySong();
 	break;
 
 	// in the case of the movie-this command, run the movieRequest function
-	case "movie-this";
+	case "movie-this":
 		movieRequest();
 	break;
 
@@ -171,11 +173,5 @@ switch(action) {
 
     default:
     break;
+};
 
-}
-
-
-
-
-
-// USE A SWITCH COMMAND FOR WHAT THE USER ENTERS
